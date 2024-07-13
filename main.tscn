@@ -1,0 +1,229 @@
+[gd_scene load_steps=23 format=3 uid="uid://bu035jd4oibsf"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_r1eyi"]
+[ext_resource type="Script" path="res://server/server.gd" id="1_y6du5"]
+[ext_resource type="Script" path="res://client/client.gd" id="2_6c0w8"]
+[ext_resource type="Script" path="res://server/players.gd" id="2_e2mab"]
+[ext_resource type="Script" path="res://client/players.gd" id="3_6rkg8"]
+[ext_resource type="PackedScene" uid="uid://dpte4l8l8wkvj" path="res://server/player/player.tscn" id="3_efufy"]
+[ext_resource type="PackedScene" uid="uid://b1c3bkkguwx4o" path="res://client/player/player.tscn" id="4_a16ne"]
+[ext_resource type="Environment" uid="uid://dqtjpy4uss3aj" path="res://client/world_env.tres" id="7_xgy1p"]
+
+[sub_resource type="GDScript" id="GDScript_cx5ui"]
+resource_name = "debug"
+script/source = "extends Control
+
+@onready var peer_id: Label = $VBoxContainer/PeerID
+@onready var multiplayer_mode: Label = $MultiplayerMode
+@onready var visible_peers: VBoxContainer = $VisiblePeers
+
+
+func add_visible_peer(peer_name: String) -> void:
+	var label: Label = Label.new()
+	label.name = peer_name
+	label.text = peer_name
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	visible_peers.add_child(label)
+
+
+func remove_visible_peer(peer_name: String) -> void:
+	visible_peers.get_node(peer_name).queue_free()
+
+
+func set_multiplayer_mode(server_running: bool) -> void:
+	if server_running:
+		multiplayer_mode.text = \"Client + Server\"
+	else:
+		multiplayer_mode.text = \"Client\"
+
+"
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_n4c6n"]
+color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_sgd0l"]
+color = Color(1, 1, 1, 1)
+
+[sub_resource type="World3D" id="World3D_ppup3"]
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_avmwn"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_v4xdl"]
+size = Vector2(35, 35)
+
+[sub_resource type="Gradient" id="Gradient_awdeq"]
+offsets = PackedFloat32Array(0.663366, 1)
+colors = PackedColorArray(0.349225, 0.61, 0.3355, 0.6, 0.462972, 0.654956, 0.466731, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1tk6w"]
+noise_type = 5
+domain_warp_enabled = true
+domain_warp_type = 1
+domain_warp_amplitude = 30.885
+domain_warp_frequency = 1.47
+domain_warp_fractal_type = 2
+domain_warp_fractal_octaves = 10
+domain_warp_fractal_lacunarity = 6.63
+domain_warp_fractal_gain = 2.025
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_5d60c"]
+in_3d_space = true
+color_ramp = SubResource("Gradient_awdeq")
+noise = SubResource("FastNoiseLite_1tk6w")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_fqkcw"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_58qq5"]
+seamless = true
+as_normal_map = true
+noise = SubResource("FastNoiseLite_fqkcw")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hnx5j"]
+albedo_color = Color(0.403922, 0.403922, 0.403922, 1)
+heightmap_texture = SubResource("NoiseTexture2D_58qq5")
+detail_albedo = SubResource("NoiseTexture2D_5d60c")
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_eh36u"]
+size = Vector3(2, 0.5, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fxfce"]
+size = Vector3(2, 0.5, 2)
+
+[node name="Main" type="Node"]
+script = ExtResource("1_r1eyi")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Control" type="Control" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="Debug" type="HBoxContainer" parent="MarginContainer/Control"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 58.0
+grow_horizontal = 2
+script = SubResource("GDScript_cx5ui")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Control/Debug"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Control/Debug/VBoxContainer"]
+layout_mode = 2
+text = "Peer ID"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/Control/Debug/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_n4c6n")
+
+[node name="PeerID" type="Label" parent="MarginContainer/Control/Debug/VBoxContainer"]
+layout_mode = 2
+text = "123456789"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Control" type="Control" parent="MarginContainer/Control/Debug"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MultiplayerMode" type="Label" parent="MarginContainer/Control/Debug"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "Client + Server"
+horizontal_alignment = 1
+
+[node name="Control2" type="Control" parent="MarginContainer/Control/Debug"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VisiblePeers" type="VBoxContainer" parent="MarginContainer/Control/Debug"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Control/Debug/VisiblePeers"]
+layout_mode = 2
+text = "Visible Peers"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/Control/Debug/VisiblePeers"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_sgd0l")
+
+[node name="Controls" type="Label" parent="MarginContainer/Control"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -23.0
+offset_right = 40.0
+grow_vertical = 0
+text = "Move:                   WASD
+Jump:                    Space
+Toggle Mouse:    TAB
+Quit:                      ESC"
+
+[node name="SubViewport" type="SubViewport" parent="."]
+own_world_3d = true
+world_3d = SubResource("World3D_ppup3")
+
+[node name="Server" type="Node" parent="SubViewport"]
+script = ExtResource("1_y6du5")
+
+[node name="Players" type="Node3D" parent="SubViewport/Server"]
+script = ExtResource("2_e2mab")
+server_player_scene = ExtResource("3_efufy")
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="SubViewport/Server/Players"]
+_spawnable_scenes = PackedStringArray("res://server/player/player.tscn")
+spawn_path = NodePath("..")
+
+[node name="Client" type="Node" parent="."]
+script = ExtResource("2_6c0w8")
+
+[node name="Players" type="Node3D" parent="Client"]
+script = ExtResource("3_6rkg8")
+local_player_scene = ExtResource("4_a16ne")
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="Client/Players"]
+_spawnable_scenes = PackedStringArray("res://client/puppet_player/puppet_player.tscn")
+spawn_path = NodePath("..")
+
+[node name="Map" type="Node3D" parent="Client"]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Client/Map"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Client/Map/StaticBody3D"]
+shape = SubResource("WorldBoundaryShape3D_avmwn")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Client/Map/StaticBody3D"]
+mesh = SubResource("PlaneMesh_v4xdl")
+surface_material_override/0 = SubResource("StandardMaterial3D_hnx5j")
+
+[node name="Box" type="StaticBody3D" parent="Client/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.76647, 0, -4.74265)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Client/Map/Box"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("BoxMesh_eh36u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Client/Map/Box"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("BoxShape3D_fxfce")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Client/Map"]
+environment = ExtResource("7_xgy1p")
+
+[connection signal="despawned" from="Client/Players/PlayerSpawner" to="Client/Players" method="_on_player_spawner_despawned"]
+[connection signal="spawned" from="Client/Players/PlayerSpawner" to="Client/Players" method="_on_player_spawner_spawned"]
