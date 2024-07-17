@@ -9,6 +9,10 @@ func _ready() -> void:
 			var player: Node3D = server_player_scene.instantiate()
 			player.name = str(peer_id)
 			add_child(player)
+			# NOTE: A MultiplayerSpawner will automatically detect if a spawnable node (from the auto-spawn list)
+			# enters the tree under spawn_path. It then tells the remote spawners to spawn whatever scene is at the
+			# same index in the auto-spawn list array. It will NOT tell a peer's spawner to spawn a node if the
+			# node's MultiplayerSynchronizer doesn't have visibility for that peer.
 			
 			# Allows other server player nodes to see which peer this visibility area belongs to.
 			var client_visibility_area: Area3D = player.get_node("ClientVisibility")
